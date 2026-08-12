@@ -103,11 +103,10 @@ export async function getWeather(city: City): Promise<WeatherData> {
 
   if (
     !current ||
-    !daily ||
-    !daily.time ||
-    !daily.weather_code ||
-    !daily.temperature_2m_max ||
-    !daily.temperature_2m_min
+    !daily?.time?.length ||
+    !daily?.weather_code?.length ||
+    !daily?.temperature_2m_max?.length ||
+    !daily?.temperature_2m_min?.length
   ) {
     throw new WeatherServiceError('Resposta incompleta da previsão do tempo.');
   }

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatTemperature, toCelsius, toFahrenheit } from '../../src/lib/temperature';
+import {
+  convertTemperature,
+  formatTemperature,
+  toCelsius,
+  toFahrenheit,
+  unitLabel,
+} from '../../src/lib/temperature';
 
 describe('temperature conversion helpers', () => {
   it('converts Celsius to Fahrenheit', () => {
@@ -15,5 +21,12 @@ describe('temperature conversion helpers', () => {
   it('formats values for display in the selected unit', () => {
     expect(formatTemperature(20, 'celsius')).toBe('20°C');
     expect(formatTemperature(68, 'fahrenheit')).toBe('68°F');
+  });
+
+  it('converts using the selected unit consistently', () => {
+    expect(convertTemperature(0, 'celsius')).toBe(0);
+    expect(convertTemperature(0, 'fahrenheit')).toBe(32);
+    expect(unitLabel('celsius')).toBe('°C');
+    expect(unitLabel('fahrenheit')).toBe('°F');
   });
 });
