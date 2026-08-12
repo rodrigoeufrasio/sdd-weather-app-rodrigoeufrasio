@@ -6,23 +6,13 @@ import EmptyState from './components/states/EmptyState';
 import ErrorState from './components/states/ErrorState';
 import LoadingState from './components/states/LoadingState';
 import UnitToggle from './components/UnitToggle';
-import { mockWeatherData } from './data/mockWeather';
+import { useWeather } from './hooks/useWeather';
 import type { Unit } from './types/weather';
 
 export default function App() {
-  const [search, setSearch] = useState('');
+  const { status, data, error, cities, search, selectCity, retry } = useWeather();
+  const [searchText, setSearchText] = useState('');
   const [unit, setUnit] = useState<Unit>('celsius');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>(
-    'success',
-  );
-
-  const handleSearch = (_city: string) => {
-    setStatus('loading');
-
-    window.setTimeout(() => {
-      setStatus('success');
-    }, 500);
-  };
 
   const renderContent = () => {
     if (status === 'loading') {
@@ -30,23 +20,19 @@ export default function App() {
     }
 
     if (status === 'error') {
-      return <ErrorState onRetry={() => setStatus('success')} />;
+      return <ErrorState message={error ?? undefined} onRetry={retry} />;
     }
 
     if (status === 'empty') {
       return <EmptyState />;
     }
 
-    if (status === 'success') {
+    if (status === 'success' && data) {
       return (
         <>
-          <CurrentWeather
-            city={mockWeatherData.city}
-            current={mockWeatherData.current}
-            unit={unit}
-          />
+          <CurrentWeather city={data.city} current={data.current} unit={unit} />
           <div className="mt-6">
-            <ForecastList forecast={mockWeatherData.forecast} unit={unit} />
+            <ForecastList forecast={data.forecast} unit={unit} />
           </div>
         </>
       );
@@ -66,13 +52,37 @@ export default function App() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <SearchBar value={search} onChange={setSearch} onSearch={handleSearch} />
+              <SearchBar
+                value={searchText}
+                onChange={setSearchText}
+                onSearch={(cityName) => {
+                  setSearchText(cityName);
+                  void search(cityName);
+                }}
+              />
               <UnitToggle unit={unit} onChange={setUnit} />
             </div>
           </div>
         </header>
 
-        <div className="mt-6">{renderContent()}</div>
+        <div className="mt-6">
+          {cities.length > 0 && status !== 'loading' && status !== 'error' ? (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {cities.map((city) => (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => void selectCity(city)}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
+                >
+                  {city.name}
+                  {city.admin1 ? `, ${city.admin1}` : ''}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {renderContent()}
+        </div>
       </div>
     </main>
   );
